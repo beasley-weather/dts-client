@@ -1,0 +1,1 @@
+DEFAULT_INTERVAL = 3600  # 1 hour

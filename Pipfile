@@ -8,6 +8,12 @@ name = "pypi"
 [packages]
 
 requests = "*"
+weewx-orm = {git = "https://github.com/beasley-weather/weewx-orm.git"}
+msgpack-python = "*"
+marshmallow-sqlalchemy = "*"
 
 
 [dev-packages]
+
+pudb = "*"
+flask = "*"
