@@ -16,17 +16,19 @@ class TransferClient:
     def __init__(self,
                  database_interfacer,
                  server_send,
-                 interval=DEFAULT_INTERVAL):
+                 interval=DEFAULT_INTERVAL,
+                 interval_start_time=time.time()):
         '''
         :param database_interfacer:  An object that knows how to query the database
         :param server_send:          Function to send data to a server
         :param interval:             Transfer interval (seconds)
+        :param interval_start_time:  Start of first interval (seconds since epoch)
         '''
         self._is_running = True
         self._database_interfacer = database_interfacer
         self._server_send = server_send
         self._interval = interval
-        self._last_query_time = time.time()
+        self._last_query_time = interval_start_time
 
     def start(self):
         start_time = time.time()
