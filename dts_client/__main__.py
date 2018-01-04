@@ -50,8 +50,8 @@ class TransferClient:
     def _load_last_interval_data(self):
         from_ = round(self._last_query_time)
         to = round(time.time())
-        print('Querying data between {} and {}'.format(
-            unix_time_to_human(from_), unix_time_to_human(to)
+        print('Querying data between {} ({}) and {} ({})'.format(
+            unix_time_to_human(from_), from_, unix_time_to_human(to), to
         ))
         return self._database_interfacer.archive_query_interval(from_, to)
 
@@ -75,10 +75,25 @@ def server_send(server_address):
     return func
 
 
+def create_client(server_address, database, interval, interval_start_time=None):
+    '''
+    :param server_address: Address for server
+    :param database: Database name
+    :param interval: Transfer interval
+    :param interval_start_time:  Start of first interval (seconds since epoch)
+    '''
+    database_interfacer = weewx_orm.WeewxDB(database)
+    if interval_start_time is None:
+        return TransferClient(database_interfacer,
+                              server_send(server_address),
+                              interval,
+                              interval_start_time)
+    else:
+        return TransferClient(database_interfacer,
+                              server_send(server_address),
+                              interval)
+
 if __name__ == '__main__':
     cli_args = args.parse()
-    database_interfacer = weewx_orm.WeewxDB(cli_args.database)
-    client = TransferClient(database_interfacer,
-                            server_send(cli_args.server),
-                            cli_args.interval)
+    client = create_client(cli_args.server, cli_args.database, cli_args.interval)
     client.start()
