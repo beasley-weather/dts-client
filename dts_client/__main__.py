@@ -2,6 +2,7 @@
 # Need a logging service to have a record of events
 # save last query timestamp externally in case of restart
 
+from os import environ as env
 import time
 
 import requests
@@ -94,6 +95,5 @@ def create_client(server_address, database, interval, interval_start_time=None):
                               interval)
 
 if __name__ == '__main__':
-    cli_args = args.parse()
-    client = create_client(cli_args.server, cli_args.database, cli_args.interval)
+    client = create_client(env['DTS_SERVER'], env['WEEWX_DATABASE'], env['DTS_INTERVAL'])
     client.start()
