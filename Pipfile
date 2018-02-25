@@ -11,6 +11,7 @@ requests = "*"
 weewx-orm = {git = "https://github.com/beasley-weather/weewx-orm.git"}
 msgpack-python = "*"
 marshmallow-sqlalchemy = "*"
+"e1839a8" = {path = ".", editable = true}
 
 
 [dev-packages]

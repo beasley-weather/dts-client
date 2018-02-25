@@ -1,14 +1,13 @@
 # TODO
 # Need a logging service to have a record of events
 # save last query timestamp externally in case of restart
-
-from os import environ as env
+import json
 import time
+from os import environ as env
 
 import requests
 import weewx_orm
 
-from . import args
 from .consts import DEFAULT_INTERVAL
 from .util import unix_time_to_human
 
@@ -18,7 +17,7 @@ class TransferClient:
                  database_interfacer,
                  server_send,
                  interval=DEFAULT_INTERVAL,
-                 interval_start_time=time.time()):
+                 interval_start_time=time.time() - 3600):
         '''
         :param database_interfacer:  An object that knows how to query the database
         :param server_send:          Function to send data to a server
@@ -28,12 +27,12 @@ class TransferClient:
         self._is_running = True
         self._database_interfacer = database_interfacer
         self._server_send = server_send
-        self._interval = interval
+        self._interval = int(interval)
         self._last_query_time = interval_start_time
 
     def start(self):
         start_time = time.time()
-        self._last_query_time = start_time
+        # self._last_query_time = start_time
         time_now = start_time
         time.sleep(self._interval - (time_now - start_time) % self._interval)
         while self._is_running:
@@ -54,7 +53,7 @@ class TransferClient:
         print('Querying data between {} ({}) and {} ({})'.format(
             unix_time_to_human(from_), from_, unix_time_to_human(to), to
         ))
-        return self._database_interfacer.archive_query_interval(from_, to)
+        return json.dumps(self._database_interfacer.archive_query_interval(from_, to))
 
     def _transfer_data(self, data):
         '''
@@ -70,8 +69,15 @@ def server_send(server_address):
     :param server_address: Address for server
     :throws: Network Exceptions
     '''
+    if ('://' not in server_address):
+        server_address = 'http://' + server_address
+
     def func(data):
-        requests.post(server_address, data=data)
+        for i in range(1, 4):
+            try:
+                return requests.post(server_address, data=data)
+            except ConnectionError as exc:
+                print('Error connecting (try {}/3'.format(i), exc)
 
     return func
 
@@ -84,7 +90,7 @@ def create_client(server_address, database, interval, interval_start_time=None):
     :param interval_start_time:  Start of first interval (seconds since epoch)
     '''
     database_interfacer = weewx_orm.WeewxDB(database)
-    if interval_start_time is None:
+    if interval_start_time is not None:
         return TransferClient(database_interfacer,
                               server_send(server_address),
                               interval,
@@ -93,6 +99,7 @@ def create_client(server_address, database, interval, interval_start_time=None):
         return TransferClient(database_interfacer,
                               server_send(server_address),
                               interval)
+
 
 if __name__ == '__main__':
     client = create_client(env['DTS_SERVER'], env['WEEWX_DATABASE'], env['DTS_INTERVAL'])

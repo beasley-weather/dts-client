@@ -1,3 +1,4 @@
+import json
 import time
 import unittest
 from unittest import mock
@@ -31,16 +32,14 @@ class Test_DTS_Client(unittest.TestCase):
     def setUp_server_send(self):
         def mock_server_send(data):
             self.call_count += 1
-            self.assertEqual(self.last_payload, data)
-            if (self.call_count >= self.expected_calls):
+            self.assertEqual(json.dumps(self.last_payload), data)
+            if self.call_count >= self.expected_calls:
                 self.client.stop()
 
         self.server_send = mock.MagicMock(side_effect=mock_server_send)
 
     def test_start_interval(self):
         self.client.start()
-        #  self.assertEqual(self.database_interfacer.call_count, self.expected_calls)
-        #  self.assertEqual(self.server_send.call_count, self.expected_calls)
 
     def assert_interval(self, from_, to):
         if (self.last_interval):
