@@ -8,7 +8,7 @@ name = "pypi"
 [packages]
 
 requests = "*"
-weewx-orm = {git = "https://github.com/beasley-weather/weewx-orm.git"}
+weewx-orm = "1.0.0"
 msgpack-python = "*"
 marshmallow-sqlalchemy = "*"
 "e1839a8" = {path = ".", editable = true}
