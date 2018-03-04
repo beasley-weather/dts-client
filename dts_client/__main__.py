@@ -7,6 +7,7 @@ from typing import Dict
 
 import requests
 import weewx_orm
+from requests import HTTPError
 
 from .consts import DEFAULT_INTERVAL
 from .util import unix_time_to_human
@@ -97,8 +98,12 @@ class TransferClient:
         '''
         for i in range(3):
             try:
-                requests.post(self._server_address, data=data)
+                resp = requests.post(self._server_address, data=data)
+                if not resp.ok:
+                    resp.raise_for_status()
                 return
+            except HTTPError as exc:
+                _logger.error(f'Unable to transfer data: {exc}')
             except requests.RequestException:
                 print_exc()
 
